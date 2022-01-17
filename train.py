@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
+from util import log
 
 def train(model, epoch, train_loader, device, optimizer, criterion, log_interval):
     model.train()
@@ -28,11 +29,11 @@ def train(model, epoch, train_loader, device, optimizer, criterion, log_interval
 
         iteration = epoch * len(train_loader) + batch_idx
         if batch_idx % log_interval == 0: #print training stats
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'
+            log('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'
                   .format(epoch, batch_idx * len(inputs), len(train_loader.dataset),
                           100. * batch_idx / len(train_loader), loss))
-            print('loss, iteration: ', loss, iteration)
-            print('learning rate: , ', optimizer.param_groups[0]['lr'], iteration)
+            log('loss, iteration: ' + str(loss) + str(iteration))
+            log('learning rate: , ' + str(optimizer.param_groups[0]['lr']))
     
     avg_loss = loss_sum / loss_cnt
     writer = SummaryWriter('./runs/')
@@ -58,7 +59,7 @@ def test(model, epoch, test_loader, device, config):
                 class_total[label] += 1
 
     total_accuracy = 100 * sum(class_correct)/sum(class_total)
-    print('[Iteration {}] Accuracy on the {} test images: {}%\n'.format(epoch, sum(class_total), total_accuracy))
-    print('accuracy: ', total_accuracy)
+    log('[Iteration {}] Accuracy on the {} test images: {}%\n'.format(epoch, sum(class_total), total_accuracy))
+    log('accuracy: ' + str(total_accuracy))
     writer = SummaryWriter('./runs/')
     writer.add_scalar('Accuracy/Test', total_accuracy, epoch)

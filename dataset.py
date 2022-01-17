@@ -7,8 +7,10 @@ import torch
 import torchaudio
 from torch.utils.data import Dataset
 
+from augmentations import augment
+
 class UrbanSoundDataset(torch.utils.data.Dataset):
-    def __init__(self, csv_path, file_path, folderList, hop_length, number_of_mel_filters=64, resample_freq=0, return_audio=False):
+    def __init__(self, csv_path, file_path, folderList, hop_length, number_of_mel_filters=64, resample_freq=0, return_audio=False, is_train=True):
         self.file_path = file_path
         self.file_names = []
         self.labels = []
@@ -17,6 +19,7 @@ class UrbanSoundDataset(torch.utils.data.Dataset):
         self.resample = resample_freq
         self.return_audio = return_audio
         self.hop_length = hop_length
+        self.is_train=is_train
         
         #loop through the csv files and only add those from the folder list
         csvData = pd.read_csv(csv_path)
@@ -37,11 +40,12 @@ class UrbanSoundDataset(torch.utils.data.Dataset):
               orig_freq=sample_rate, new_freq=self.resample)
             soundData = resample_transform(soundData)
 #            print(soundData.shape)
+        
+        if self.is_train:
+            soundData = augment(soundData, self.resample)
 
         # This will convert audio files with two channels into one
         soundData = torch.mean(soundData, dim=0, keepdim=True)
-        if index == 0:
-            print(soundData.shape)
         # Convert audio to log-scale Mel spectrogram
         melspectrogram_transform = torchaudio.transforms.MelSpectrogram(
             sample_rate=self.resample,
